@@ -1,0 +1,97 @@
+spring:
+  application:
+    name: devflow
+
+  # ─── Database ────────────────────────────────────────────────
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/devflow}
+    username: ${DB_USER:devflow}
+    password: ${DB_PASSWORD:devflow_secret}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ─── Redis ───────────────────────────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
+          min-idle: 1
+
+  # ─── Kafka ───────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: devflow-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.devflow.*"
+
+  # ─── Security / OAuth2 (GitHub) ──────────────────────────────
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: read:user,user:email,repo
+
+# ─── JWT ─────────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET}
+  expiration-ms: 86400000
+
+# ─── OpenAI ──────────────────────────────────────────────────
+openai:
+  api-key: ${OPENAI_API_KEY:}
+  model: gpt-4o-mini
+  base-url: https://api.openai.com/v1
+
+# ─── WebSocket ───────────────────────────────────────────────
+websocket:
+  allowed-origins: ${WS_ORIGINS:http://localhost:3000}
+
+# ─── Server ──────────────────────────────────────────────────
+server:
+  port: 8080
+  error:
+    include-message: always
+
+# ─── Actuator (health checks, metrics) ───────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# ─── Logging ─────────────────────────────────────────────────
+logging:
+  level:
+    com.devflow: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
