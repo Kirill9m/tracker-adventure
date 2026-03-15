@@ -1,0 +1,34 @@
+import { create } from 'zustand'
+
+interface User {
+  id: string
+  name: string
+  email: string
+  githubLogin: string
+  avatarUrl: string
+}
+
+interface AuthStore {
+  token: string | null
+  user: User | null
+  setToken: (token: string) => void
+  setUser: (user: User) => void
+  logout: () => void
+}
+
+export const useAuthStore = create<AuthStore>((set) => ({
+  token: localStorage.getItem('token'),
+  user: null,
+
+  setToken: (token) => {
+    localStorage.setItem('token', token)
+    set({ token })
+  },
+
+  setUser: (user) => set({ user }),
+
+  logout: () => {
+    localStorage.removeItem('token')
+    set({ token: null, user: null })
+  },
+}))

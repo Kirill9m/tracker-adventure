@@ -49,7 +49,7 @@ public class SecurityConfig {
                 OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
                 String token = authService.loginWithGithub(oAuth2User);
                 System.out.println("Token: " + token);
-                response.sendRedirect("http://localhost:3000/auth/callback?token=" + token);
+                response.sendRedirect("http://localhost:5173/auth/callback?token=" + token);
             } catch (Exception e) {
                 System.out.println("=== ERROR IN SUCCESS HANDLER ===");
                 e.printStackTrace();
