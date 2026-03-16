@@ -1,11 +1,13 @@
 package tracker.adventure.backend.task.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import tracker.adventure.backend.auth.model.User;
+import tracker.adventure.backend.notification.NotificationService;
 import tracker.adventure.backend.task.model.Board;
 import tracker.adventure.backend.task.model.BoardColumn;
 import tracker.adventure.backend.task.model.Task;
@@ -20,6 +22,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final BoardColumnRepository columnRepository;
     private final TaskRepository taskRepository;
+    private final NotificationService notificationService;
 
     // ─── Boards ───────────────────────────────────────────────
 
@@ -53,7 +56,13 @@ public class BoardService {
         column.setName(name);
         column.setBoard(board);
         column.setPosition(existing.size());
-        return columnRepository.save(column);
+        columnRepository.save(column);
+
+        notificationService.notifyBoardUpdated(
+                boardId,
+                "COLUMN_CREATED",
+                Map.of("columnId", column.getId(), "name", column.getName()));
+        return column;
     }
 
     public List<BoardColumn> getColumns(String boardId) {
@@ -75,7 +84,13 @@ public class BoardService {
         task.setColumn(column);
         task.setAssignee(assignee);
         task.setPosition(existing.size());
-        return taskRepository.save(task);
+        taskRepository.save(task);
+
+        notificationService.notifyBoardUpdated(
+                column.getBoard().getId(),
+                "TASK_CREATED",
+                Map.of("taskId", task.getId(), "title", task.getTitle(), "columnId", column.getId()));
+        return task;
     }
 
     public List<Task> getTasks(String columnId) {
@@ -92,6 +107,12 @@ public class BoardService {
 
         task.setColumn(targetColumn);
         task.setPosition(newPosition);
-        return taskRepository.save(task);
+        taskRepository.save(task);
+
+        notificationService.notifyBoardUpdated(
+                targetColumn.getBoard().getId(),
+                "TASK_MOVED",
+                Map.of("taskId", task.getId(), "fromColumn", task.getColumn().getId(), "toColumn", targetColumnId));
+        return task;
     }
 }

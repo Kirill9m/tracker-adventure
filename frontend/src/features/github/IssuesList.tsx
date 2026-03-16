@@ -28,7 +28,7 @@ function IssueCard({ issue }: { issue: GitHubIssue }) {
           <p className="text-white text-sm font-medium">{issue.title}</p>
           {issue.body && (
             <p className="text-gray-400 text-xs mt-1 line-clamp-2">{issue.body}</p>
-          )}
+          )}u
         </div>
       </div>
     </a>

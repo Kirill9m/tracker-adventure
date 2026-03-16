@@ -8,6 +8,9 @@ import api from "./lib/axios";
 import BoardPage from "./features/auth/board/BoardPage";
 import IssuesList from "./features/github/IssuesList";
 import AiReviewPanel from "./features/ai/AiReviewPanel";
+import NotificationToast, { useToasts } from "./components/NotificationToast";
+import { useWebSocket } from "./hooks/useWebSocket";
+import { useQueryClient } from "@tanstack/react-query";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -28,6 +31,27 @@ function Dashboard() {
   const [showAiReview, setShowAiReview] = useState(false);
   const [repoName, setRepoName] = useState("");
   const [boardName, setBoardName] = useState("");
+  const { toasts, addToast } = useToasts();
+  const queryClient = useQueryClient()
+
+  useWebSocket(selectedBoardId, (notification) => {
+    switch (notification.type) {
+      case "TASK_CREATED":
+        addToast("TASK_CREATED", "New task created");
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        break;
+      case "TASK_MOVED":
+        addToast("TASK_MOVED", "Task moved");
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        break;
+      case "COLUMN_CREATED":
+        addToast("COLUMN_CREATED", "New column created");
+        queryClient.invalidateQueries({
+          queryKey: ["columns", selectedBoardId],
+        });
+        break;
+    }
+  });
 
   useEffect(() => {
     api.get("/auth/me").then((res) => setUser(res.data));
@@ -195,6 +219,7 @@ function Dashboard() {
           </div>
         )}
       </div>
+      <NotificationToast toasts={toasts} />
     </div>
   );
 }
