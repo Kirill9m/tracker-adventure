@@ -2,6 +2,7 @@ package tracker.adventure.backend.github.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -69,4 +70,24 @@ public class GitHubWebhookService {
     public List<GitHubIssue> getIssues(String repoFullName) {
         return issueRepository.findByRepoFullName(repoFullName);
     }
+
+    public Map<String, Object> getStats(String repoFullName) {
+    List<GitHubIssue> issues = issueRepository.findByRepoFullName(repoFullName);
+
+    long open = issues.stream().filter(i -> "open".equals(i.getState())).count();
+    long closed = issues.stream().filter(i -> "closed".equals(i.getState())).count();
+
+    Map<String, Long> byDay = issues.stream()
+        .collect(Collectors.groupingBy(
+            i -> i.getCreatedAt().toLocalDate().toString(),
+            Collectors.counting()
+        ));
+
+    return Map.of(
+        "total", issues.size(),
+        "open", open,
+        "closed", closed,
+        "byDay", byDay
+    );
+}
 }

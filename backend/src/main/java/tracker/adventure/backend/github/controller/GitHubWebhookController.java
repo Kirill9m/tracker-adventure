@@ -41,4 +41,9 @@ public class GitHubWebhookController {
     public ResponseEntity<List<GitHubIssue>> getIssues(@RequestParam String repo) {
         return ResponseEntity.ok(webhookService.getIssues(repo));
     }
+
+    @GetMapping("/issues/stats")
+    public ResponseEntity<Map<String, Object>> getStats(@RequestParam String repo) {
+        return ResponseEntity.ok(webhookService.getStats(repo));
+    }
 }

@@ -11,6 +11,7 @@ import AiReviewPanel from "./features/ai/AiReviewPanel";
 import NotificationToast, { useToasts } from "./components/NotificationToast";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useQueryClient } from "@tanstack/react-query";
+import AnalyticsDashboard from "./features/analytics/AnalyticsDashboard";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -32,7 +33,8 @@ function Dashboard() {
   const [repoName, setRepoName] = useState("");
   const [boardName, setBoardName] = useState("");
   const { toasts, addToast } = useToasts();
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   useWebSocket(selectedBoardId, (notification) => {
     switch (notification.type) {
@@ -124,6 +126,16 @@ function Dashboard() {
             >
               AI Review
             </button>
+            <button
+              onClick={() => setShowAnalytics(!showAnalytics)}
+              className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                showAnalytics
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              Analytics
+            </button>
           </div>
         </div>
 
@@ -157,6 +169,12 @@ function Dashboard() {
             </div>
             {repoName && <IssuesList repoFullName={repoName} />}
           </div>
+        </div>
+      )}
+
+      {showAnalytics && (
+        <div className="border-b border-gray-800 px-6 py-4">
+          <AnalyticsDashboard />
         </div>
       )}
 
