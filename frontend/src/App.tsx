@@ -7,6 +7,7 @@ import CallbackPage from "./features/auth/CallbackPage";
 import api from "./lib/axios";
 import BoardPage from "./features/auth/board/BoardPage";
 import IssuesList from "./features/github/IssuesList";
+import AiReviewPanel from "./features/ai/AiReviewPanel";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token);
@@ -24,6 +25,7 @@ function Dashboard() {
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [showIssues, setShowIssues] = useState(false);
+  const [showAiReview, setShowAiReview] = useState(false);
   const [repoName, setRepoName] = useState("");
   const [boardName, setBoardName] = useState("");
 
@@ -88,6 +90,16 @@ function Dashboard() {
             >
               GitHub Issues
             </button>
+            <button
+              onClick={() => setShowAiReview(!showAiReview)}
+              className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                showAiReview
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              AI Review
+            </button>
           </div>
         </div>
 
@@ -121,6 +133,12 @@ function Dashboard() {
             </div>
             {repoName && <IssuesList repoFullName={repoName} />}
           </div>
+        </div>
+      )}
+
+      {showAiReview && (
+        <div className="border-b border-gray-800 px-6 py-4">
+          <AiReviewPanel />
         </div>
       )}
 
