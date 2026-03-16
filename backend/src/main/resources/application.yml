@@ -4,6 +4,9 @@ spring:
   application:
     name: devflow
 
+app:
+  frontend-url: ${APP_FRONTEND_URL:https://github.nordapps.se}
+
   # ─── Database ────────────────────────────────────────────────
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/devflow}

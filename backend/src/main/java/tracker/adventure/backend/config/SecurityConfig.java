@@ -1,5 +1,6 @@
 package tracker.adventure.backend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +24,8 @@ public class SecurityConfig {
     private final AuthService authService;
     private final JwtService jwtService;
     private final JwtAuthFilter jwtAuthFilter;
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -51,7 +54,7 @@ public class SecurityConfig {
                 OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
                 String token = authService.loginWithGithub(oAuth2User);
                 System.out.println("Token: " + token);
-                response.sendRedirect("https://github.nordapps.se/auth/callback?token=" + token);
+                response.sendRedirect(frontendUrl + "/auth/callback?token=" + token);
             } catch (Exception e) {
                 System.out.println("=== ERROR IN SUCCESS HANDLER ===");
                 e.printStackTrace();
