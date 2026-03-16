@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import tracker.adventure.backend.auth.model.User;
+import tracker.adventure.backend.task.dto.BoardDto;
+import tracker.adventure.backend.task.dto.ColumnDto;
+import tracker.adventure.backend.task.dto.TaskDto;
 import tracker.adventure.backend.task.model.Board;
 import tracker.adventure.backend.task.model.BoardColumn;
 import tracker.adventure.backend.task.model.Task;
@@ -29,56 +32,65 @@ public class BoardController {
     // ─── Boards ───────────────────────────────────────────────
 
     @PostMapping
-    public ResponseEntity<Board> createBoard(@RequestBody CreateBoardRequest request,
+    public ResponseEntity<BoardDto> createBoard(@RequestBody CreateBoardRequest request,
             Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         Board board = boardService.createBoard(request.name(), request.description(), user);
-        return ResponseEntity.ok(board);
+        return ResponseEntity.ok(BoardDto.from(board));
     }
 
     @GetMapping
-    public ResponseEntity<List<Board>> getMyBoards(Authentication authentication) {
+    public ResponseEntity<List<BoardDto>> getMyBoards(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(boardService.getMyBoards(user));
+        return ResponseEntity.ok(
+                boardService.getMyBoards(user).stream()
+                        .map(BoardDto::from)
+                        .toList());
     }
 
     // ─── Columns ──────────────────────────────────────────────
 
     @PostMapping("/{boardId}/columns")
-    public ResponseEntity<BoardColumn> createColumn(@PathVariable String boardId,
+    public ResponseEntity<ColumnDto> createColumn(@PathVariable String boardId,
             @RequestBody CreateColumnRequest request,
             Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         BoardColumn column = boardService.createColumn(boardId, request.name(), user);
-        return ResponseEntity.ok(column);
+        return ResponseEntity.ok(ColumnDto.from(column));
     }
 
     @GetMapping("/{boardId}/columns")
-    public ResponseEntity<List<BoardColumn>> getColumns(@PathVariable String boardId) {
-        return ResponseEntity.ok(boardService.getColumns(boardId));
+    public ResponseEntity<List<ColumnDto>> getColumns(@PathVariable String boardId) {
+        return ResponseEntity.ok(
+                boardService.getColumns(boardId).stream()
+                        .map(ColumnDto::from)
+                        .toList());
     }
 
     // ─── Tasks ────────────────────────────────────────────────
 
     @PostMapping("/columns/{columnId}/tasks")
-    public ResponseEntity<Task> createTask(@PathVariable String columnId,
+    public ResponseEntity<TaskDto> createTask(@PathVariable String columnId,
             @RequestBody CreateTaskRequest request,
             Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         Task task = boardService.createTask(columnId, request.title(), request.description(), user);
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(TaskDto.from(task));
     }
 
     @GetMapping("/columns/{columnId}/tasks")
-    public ResponseEntity<List<Task>> getTasks(@PathVariable String columnId) {
-        return ResponseEntity.ok(boardService.getTasks(columnId));
+    public ResponseEntity<List<TaskDto>> getTasks(@PathVariable String columnId) {
+        return ResponseEntity.ok(
+                boardService.getTasks(columnId).stream()
+                        .map(TaskDto::from)
+                        .toList());
     }
 
     @PatchMapping("/tasks/{taskId}/move")
-    public ResponseEntity<Task> moveTask(@PathVariable String taskId,
+    public ResponseEntity<TaskDto> moveTask(@PathVariable String taskId,
             @RequestBody MoveTaskRequest request) {
         Task task = boardService.moveTask(taskId, request.columnId(), request.position());
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(TaskDto.from(task));
     }
 
     // ─── Request records ──────────────────────────────────────
