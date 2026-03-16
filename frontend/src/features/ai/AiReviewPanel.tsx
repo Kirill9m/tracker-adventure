@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function AiReviewPanel() {
   const [code, setCode] = useState("");
@@ -12,8 +13,6 @@ export default function AiReviewPanel() {
     setReview("");
     setLoading(true);
 
-    abortRef.current = new AbortController();
-
     try {
       const token = localStorage.getItem("token");
       const response = await fetch("/api/ai/review", {
@@ -23,28 +22,11 @@ export default function AiReviewPanel() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ code, language }),
-        signal: abortRef.current.signal,
       });
-
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data:")) {
-            const text = line.replace("data:", "");
-            setReview((prev) => prev + text);
-          }
-        }
-      }
+      const data = await response.json();
+      setReview(data.review);
     } catch (e) {
-      // aborted
+      setReview("Error getting review");
     } finally {
       setLoading(false);
     }
@@ -105,11 +87,15 @@ export default function AiReviewPanel() {
         {/* Review output */}
         <div className="flex-1 flex flex-col gap-2">
           <label className="text-gray-400 text-xs">Review</label>
-          <div className="flex-1 bg-gray-800 rounded-lg p-4 border border-gray-700 text-gray-200 text-sm overflow-auto whitespace-pre-wrap min-h-64">
-            {review || (
+          <div className="flex-1 bg-gray-800 rounded-lg p-4 border border-gray-700 text-gray-200 text-sm overflow-auto min-h-64 prose prose-invert prose-sm max-w-none">
+            {review ? (
+              <>
+                <ReactMarkdown>{review}</ReactMarkdown>
+                {loading && <span className="animate-pulse">▋</span>}
+              </>
+            ) : (
               <span className="text-gray-600">Review will appear here...</span>
             )}
-            {loading && <span className="animate-pulse">▋</span>}
           </div>
         </div>
       </div>

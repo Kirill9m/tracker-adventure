@@ -25,25 +25,25 @@ public class AiReviewService {
 
     private final WebClient webClient = WebClient.builder().build();
 
-    public Flux<String> reviewCode(String code, String language) {
+    public String reviewCode(String code, String language) {
         String prompt = """
-                                You are an expert code reviewer. Review the following %s code.
-                                Provide feedback on:
-                                1. Code quality and best practices
-                                2. Potential bugs or issues
-                                3. Performance considerations
-                                4. Security concerns
-                                5. Suggestions for improvement
+                            You are an expert code reviewer. Review the following %s code.
+                            Provide feedback on:
+                            1. Code quality and best practices
+                            2. Potential bugs or issues
+                            3. Performance considerations
+                            4. Security concerns
+                            5. Suggestions for improvement
 
-                                Code to review:
+                            Code to review:
                 ```%s
-                                %s
+                            %s
                 ```
-                                """.formatted(language, language, code);
+                            """.formatted(language, language, code);
 
         Map<String, Object> requestBody = Map.of(
                 "model", model,
-                "stream", true,
+                "stream", false,
                 "messages", List.of(
                         Map.of("role", "user", "content", prompt)));
 
@@ -53,24 +53,17 @@ public class AiReviewService {
                 .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
-                .bodyToFlux(String.class)
-                .filter(chunk -> !chunk.equals("[DONE]"))
-                .mapNotNull(chunk -> {
+                .bodyToMono(String.class)
+                .map(response -> {
                     try {
                         ObjectMapper mapper = new ObjectMapper();
-                        JsonNode node = mapper.readTree(chunk);
-                        JsonNode content = node
-                                .path("choices")
-                                .path(0)
-                                .path("delta")
-                                .path("content");
-                        if (content.isMissingNode() || content.isNull())
-                            return null;
-                        String text = content.asText();
-                        return text.isEmpty() ? null : text;
+                        JsonNode node = mapper.readTree(response);
+                        return node.path("choices").path(0)
+                                .path("message").path("content").asText();
                     } catch (Exception e) {
-                        return null;
+                        return "Error parsing response";
                     }
-                });
+                })
+                .block();
     }
 }
