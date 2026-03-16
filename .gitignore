@@ -27,3 +27,4 @@ replay_pid*
 
 devflow-structure.md
 docker-compose.yml
+.env

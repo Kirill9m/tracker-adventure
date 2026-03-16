@@ -68,7 +68,7 @@ export const useTasks = (columnId: string) =>
       api.get<Task[]>(`/boards/columns/${columnId}/tasks`).then((r) => r.data),
   })
 
-export const useCreateTask = (columnId: string, boardId: string) => {
+export const useCreateTask = (columnId: string, _boardId?: string) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: { title: string; description: string }) =>

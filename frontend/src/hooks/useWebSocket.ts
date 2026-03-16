@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
@@ -21,8 +21,13 @@ export function useWebSocket(
 
     const token = localStorage.getItem("token");
 
+    const wsUrl =
+      window.location.hostname === "localhost"
+        ? "http://localhost:8080/ws"
+        : `https://${window.location.hostname}/ws`;
+
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () => new SockJS(wsUrl),
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },
