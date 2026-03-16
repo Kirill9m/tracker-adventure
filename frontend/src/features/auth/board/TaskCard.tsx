@@ -1,6 +1,5 @@
 import type { Task } from "../../../api/boards";
 
-
 interface Props {
   task: Task;
   onDragStart: (taskId: string, columnId: string) => void;

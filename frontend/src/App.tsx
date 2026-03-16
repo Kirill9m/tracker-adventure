@@ -1,52 +1,57 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { useAuthStore } from './store/authStore'
-import { useBoards, useCreateBoard } from './api/boards'
-import LoginPage from './features/auth/LoginPage'
-import CallbackPage from './features/auth/CallbackPage'
-import api from './lib/axios'
-import BoardPage from './features/auth/board/BoardPage'
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useAuthStore } from "./store/authStore";
+import { useBoards, useCreateBoard } from "./api/boards";
+import LoginPage from "./features/auth/LoginPage";
+import CallbackPage from "./features/auth/CallbackPage";
+import api from "./lib/axios";
+import BoardPage from "./features/auth/board/BoardPage";
+import IssuesList from "./features/github/IssuesList";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const token = useAuthStore((s) => s.token)
-  if (!token) return <Navigate to="/login" replace />
-  return <>{children}</>
+  const token = useAuthStore((s) => s.token);
+  if (!token) return <Navigate to="/login" replace />;
+  return <>{children}</>;
 }
 
 function Dashboard() {
-  const user = useAuthStore((s) => s.user)
-  const setUser = useAuthStore((s) => s.setUser)
-  const logout = useAuthStore((s) => s.logout)
-  const { data: boards = [] } = useBoards()
-  const createBoard = useCreateBoard()
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const logout = useAuthStore((s) => s.logout);
+  const { data: boards = [] } = useBoards();
+  const createBoard = useCreateBoard();
 
-  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null)
-  const [creating, setCreating] = useState(false)
-  const [boardName, setBoardName] = useState('')
+  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [showIssues, setShowIssues] = useState(false);
+  const [repoName, setRepoName] = useState("");
+  const [boardName, setBoardName] = useState("");
 
   useEffect(() => {
-    api.get('/auth/me').then((res) => setUser(res.data))
-  }, [])
+    api.get("/auth/me").then((res) => setUser(res.data));
+  }, []);
 
   useEffect(() => {
     if (boards.length > 0 && !selectedBoardId) {
-      setSelectedBoardId(boards[0].id)
+      setSelectedBoardId(boards[0].id);
     }
-  }, [boards])
+  }, [boards]);
 
   const handleCreateBoard = async () => {
-    if (!boardName.trim()) return
-    const board = await createBoard.mutateAsync({ name: boardName, description: '' })
-    setSelectedBoardId(board.id)
-    setBoardName('')
-    setCreating(false)
-  }
+    if (!boardName.trim()) return;
+    const board = await createBoard.mutateAsync({
+      name: boardName,
+      description: "",
+    });
+    setSelectedBoardId(board.id);
+    setBoardName("");
+    setCreating(false);
+  };
 
-  const selectedBoard = boards.find((b) => b.id === selectedBoardId)
+  const selectedBoard = boards.find((b) => b.id === selectedBoardId);
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-
       {/* Navbar */}
       <div className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -60,8 +65,8 @@ function Dashboard() {
                 onClick={() => setSelectedBoardId(board.id)}
                 className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   selectedBoardId === board.id
-                    ? 'bg-gray-700 text-white'
-                    : 'text-gray-400 hover:text-white'
+                    ? "bg-gray-700 text-white"
+                    : "text-gray-400 hover:text-white"
                 }`}
               >
                 {board.name}
@@ -72,6 +77,16 @@ function Dashboard() {
               className="text-gray-500 hover:text-white text-sm px-2 py-1.5 transition-colors"
             >
               + New board
+            </button>
+            <button
+              onClick={() => setShowIssues(!showIssues)}
+              className={`text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                showIssues
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              GitHub Issues
             </button>
           </div>
         </div>
@@ -93,6 +108,22 @@ function Dashboard() {
         </div>
       </div>
 
+      {showIssues && (
+        <div className="border-b border-gray-800 px-6 py-4">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <input
+                value={repoName}
+                onChange={(e) => setRepoName(e.target.value)}
+                placeholder="owner/repo (e.g. Kirill9m/my-repo)"
+                className="bg-gray-800 text-white text-sm rounded-lg px-3 py-2 outline-none border border-gray-700 focus:border-blue-500 w-72"
+              />
+            </div>
+            {repoName && <IssuesList repoFullName={repoName} />}
+          </div>
+        </div>
+      )}
+
       {/* Board name */}
       {selectedBoard && (
         <div className="px-6 py-4 border-b border-gray-800">
@@ -109,7 +140,7 @@ function Dashboard() {
               autoFocus
               value={boardName}
               onChange={(e) => setBoardName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateBoard()}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateBoard()}
               placeholder="Board name..."
               className="bg-gray-800 text-white rounded-lg px-3 py-2 outline-none border border-gray-600 focus:border-blue-500"
             />
@@ -121,7 +152,10 @@ function Dashboard() {
                 Create
               </button>
               <button
-                onClick={() => { setCreating(false); setBoardName('') }}
+                onClick={() => {
+                  setCreating(false);
+                  setBoardName("");
+                }}
                 className="text-gray-400 hover:text-white px-4 py-2 rounded-lg text-sm transition-colors"
               >
                 Cancel
@@ -137,12 +171,14 @@ function Dashboard() {
           <BoardPage boardId={selectedBoardId} />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <p className="text-gray-600">Create your first board to get started</p>
+            <p className="text-gray-600">
+              Create your first board to get started
+            </p>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export default function App() {
@@ -159,5 +195,5 @@ export default function App() {
         }
       />
     </Routes>
-  )
+  );
 }

@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/error").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/github/webhook", "/error").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth -> oauth
                         .successHandler(oAuth2SuccessHandler()))
